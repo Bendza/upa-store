@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Breadcrumbs, { BreadcrumbItem } from '../components/collection/Breadcrumbs';
 import FilterSidebar from '../components/collection/FilterSidebar';
 import ProductGrid from '../components/collection/ProductGrid';
 import { products } from '../data/mockData';
 
-interface Filters {
+export interface Filters {
   priceRange: [number, number];
   sizes: string[];
 }
@@ -18,21 +18,19 @@ const Collection = () => {
     sizes: [],
   });
 
-  // Memoize the filtered products to prevent unnecessary recalculations
-  const filteredProducts = useMemo(() => {
-    let filtered = products;
+  // Memoize the filtering function
+  const getFilteredProducts = useCallback(() => {
+    let filtered = [...products]; // Create a new array instead of mutating the original
 
     if (category) {
       filtered = filtered.filter(product => product.category === category);
     }
 
-    // Apply price filter
     filtered = filtered.filter(product => 
       product.price >= filters.priceRange[0] && 
       product.price <= filters.priceRange[1]
     );
 
-    // Apply size filter
     if (filters.sizes.length > 0) {
       filtered = filtered.filter(product => 
         product.sizes.some(size => filters.sizes.includes(size.size))
@@ -40,14 +38,17 @@ const Collection = () => {
     }
 
     return filtered;
-  }, [category, filters.priceRange, filters.sizes]);
+  }, [category, filters.priceRange[0], filters.priceRange[1], filters.sizes]);
 
-  const handleFilterChange = (newFilters: Partial<Filters>) => {
+  // Use useMemo to memoize the filtered products
+  const filteredProducts = useMemo(() => getFilteredProducts(), [getFilteredProducts]);
+
+  const handleFilterChange = useCallback((newFilters: Partial<Filters>) => {
     setFilters(prev => ({
       ...prev,
       ...newFilters
     }));
-  };
+  }, []);
 
   const getBreadcrumbs = (): BreadcrumbItem[] => {
     const baseBreadcrumbs: BreadcrumbItem[] = [
@@ -59,8 +60,8 @@ const Collection = () => {
     }
 
     const categoryMap: Record<string, string> = {
-      'muska-obuca': 'Muška obuća',
-      'zenska-obuca': 'Ženska obuća'
+      'prolece-leto': 'Prolece/Leto Kolekcija',
+      'jesen-zima': 'Jesen/Zima Kolekcija'
     };
 
     return [
@@ -90,6 +91,7 @@ const Collection = () => {
             isOpen={isFilterOpen}
             onClose={() => setIsFilterOpen(false)}
             onFilterChange={handleFilterChange}
+            products={filteredProducts}
           />
         </aside>
         <main className="lg:col-span-9">
@@ -102,7 +104,7 @@ const Collection = () => {
               sizes: product.sizes,
               slug: product.slug
             }))}
-            totalProducts={products.length}
+            totalProducts={filteredProducts.length}
           />
         </main>
       </div>

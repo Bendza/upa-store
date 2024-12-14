@@ -10,6 +10,30 @@ const Contact = () => {
     message: string;
   } | null>(null);
 
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [errors, setErrors] = useState({ name: '', email: '', message: '' });
+
+  const validateForm = () => {
+    const newErrors = { name: '', email: '', message: '' };
+    if (!formData.name) newErrors.name = 'Name is required';
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    if (!formData.message) newErrors.message = 'Message is required';
+    setErrors(newErrors);
+    return Object.values(newErrors).every(x => x === '');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      // Submit form
+      console.log('Form submitted:', formData);
+    }
+  };
+
   const handleSubmitSuccess = () => {
     setNotification({
       type: 'success',
@@ -33,6 +57,11 @@ const Contact = () => {
           <ContactForm 
             onSubmitSuccess={handleSubmitSuccess}
             onSubmitError={handleSubmitError}
+            onSubmit={handleSubmit}
+            formData={formData}
+            setFormData={setFormData}
+            errors={errors}
+            setErrors={setErrors}
           />
         </div>
       </div>

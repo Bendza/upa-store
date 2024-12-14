@@ -57,8 +57,8 @@ const Header = () => {
 const NavigationMenu = () => {
   const menuItems = [
     { title: 'Naslovna', href: '/' },
-    { title: 'Muška obuća', href: '/kolekcije/muska-obuca' },
-    { title: 'Ženska obuća', href: '/kolekcije/zenska-obuca' },
+    { title: 'Prolece/Leto Kolekcija', href: '/kolekcije/prolece-leto' },
+    { title: 'Jesen/Zima Kolekcija', href: '/kolekcije/jesen-zima' },
     { title: 'Kontakt', href: '/kontakt' }
   ];
   

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import ProductCard, { ProductCardProps } from './ProductCard';
 
 interface ProductGridProps {
@@ -6,14 +6,21 @@ interface ProductGridProps {
   totalProducts: number;
 }
 
+const ITEMS_PER_PAGE = 6;
+
 const ProductGrid = ({ products, totalProducts }: ProductGridProps) => {
   const [sortBy, setSortBy] = useState<string>('price_asc');
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
-  };
+  }, []);
 
-  const getSortedProducts = () => {
+  const handleLoadMore = useCallback(() => {
+    setDisplayCount(prev => Math.min(prev + ITEMS_PER_PAGE, products.length));
+  }, [products.length]);
+
+  const getSortedProducts = useCallback(() => {
     const sortedProducts = [...products];
     switch (sortBy) {
       case 'price_asc':
@@ -27,7 +34,9 @@ const ProductGrid = ({ products, totalProducts }: ProductGridProps) => {
       default:
         return sortedProducts;
     }
-  };
+  }, [products, sortBy]);
+
+  const productsToDisplay = getSortedProducts().slice(0, displayCount);
 
   return (
     <div>
@@ -48,7 +57,7 @@ const ProductGrid = ({ products, totalProducts }: ProductGridProps) => {
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {getSortedProducts().map(product => (
+        {productsToDisplay.map(product => (
           <ProductCard 
             key={product.id} 
             {...product}
@@ -56,9 +65,12 @@ const ProductGrid = ({ products, totalProducts }: ProductGridProps) => {
         ))}
       </div>
 
-      {products.length < totalProducts && (
+      {displayCount < products.length && (
         <div className="mt-8 text-center">
-          <button className="bg-[#B39B8E] text-white px-8 py-3 rounded hover:bg-[#9A8275] transition-colors">
+          <button 
+            className="bg-[#B39B8E] text-white px-8 py-3 rounded hover:bg-[#9A8275] transition-colors"
+            onClick={handleLoadMore}
+          >
             UČITAJ JOŠ
           </button>
         </div>
